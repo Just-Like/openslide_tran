@@ -8,13 +8,12 @@ from UI.UI import UI
 from Utiliy.Utiliy import Utiliy
 from config import Config
 
-
 if __name__ == '__main__':
     root = tkinter.Tk()
     root.title(Config.main_win_title)
     root.update_idletasks()
     root.withdraw()
-    root.geometry('%dx%d+%d+%d'%(Utiliy.getMsize(root)))
+    root.geometry('%dx%d+%d+%d' % (Utiliy.getMsize(root)))
     root.deiconify()
     root.update()
     UI(root).pack()

@@ -29,11 +29,12 @@ class Convert:
         file_name, file_ext = file_name.split('.')
 
         if file_ext != 'kfb':
-            self.tran_standard_slide(path,file_name)
+            self.tran_standard_slide(path,file_name, file_ext)
         else:
             self.tran_kfb_slide(path,file_name)
 
-    def tran_standard_slide(self, path, file_name):
+    def tran_standard_slide(self, path, file_name, file_ext):
+        file_name = Utiliy.Utiliy.gefName(file_name, file_ext)
         file_name = prefix_path + '\\pngs\\' + file_name
         try:
             try:
