@@ -55,7 +55,7 @@ class Convert:
             print("出现未知错误！！！！！")
             Utiliy.Utiliy.messageError("提示", "出现未知错误！！")
         finally:
-            print('1')
+            pass
 
     def tran_kfb_slide(self, path, file_name):
         finsh_flag = False
