@@ -16,25 +16,27 @@ os.environ['path'] = os.environ['path'] + ';' + openslide_bin_path
 
 import subprocess
 import openslide
-from Utiliy import Utiliy
+from Utiliy.Utiliy import Utiliy
 
 
 class Convert:
     def __init__(self):
         pass
 
-    def tran(self, path):
-        Utiliy.Utiliy.messageInfo("提示", "开始转换！！")
+    def tran(self, path, show_message=1):
+        if show_message:
+            Utiliy.messageInfo("提示", "开始转换！！")
         _, file_name = os.path.split(path)
         file_name, file_ext = file_name.split('.')
 
         if file_ext != 'kfb':
-            self.tran_standard_slide(path,file_name, file_ext)
+            png_path = self.tran_standard_slide(path, file_name, file_ext)
         else:
-            self.tran_kfb_slide(path,file_name)
+            self.tran_kfb_slide(path, file_name)
+        return png_path
 
     def tran_standard_slide(self, path, file_name, file_ext):
-        file_name = Utiliy.Utiliy.gefName(file_name, file_ext)
+        file_name = Utiliy.gefName(file_name, file_ext)
         file_name = prefix_path + '\\pngs\\' + file_name
         try:
             try:
@@ -47,13 +49,14 @@ class Convert:
                 img = slide.get_thumbnail((15000, 15000))
             img.save(file_name + '.png')
             print("转换成功！！！！！")
-            Utiliy.Utiliy.messageInfo("提示", "转换成功！！")
+            Utiliy.messageInfo("提示", "转换成功！！")
+            return file_name + '.png'
         except MemoryError:
             print("文件太大内存不足！！！！！")
-            Utiliy.Utiliy.messageError("提示", "文件太大内存不足！！")
+            Utiliy.messageError("提示", "文件太大内存不足！！")
         except OSError as e:
             print("出现未知错误！！！！！")
-            Utiliy.Utiliy.messageError("提示", "出现未知错误！！")
+            Utiliy.messageError("提示", "出现未知错误！！")
         finally:
             pass
 
@@ -64,22 +67,12 @@ class Convert:
         kfb2tif_exe_path = prefix_path + r'\ext_package\kfb2tif\KFbioConverter.exe'
         kfb2tif_exe_exists = os.path.exists(kfb2tif_exe_path)
         if not kfb2tif_exe_exists:
-            print('KFbioConverter.exe工具不存在')
+            Utiliy.messageError("提示", "KFbioConverter.exe工具不存在！！")
         comm_str = '{} {} {} 2'.format(kfb2tif_exe_path, path, save_path)
         obj = subprocess.Popen(comm_str, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # for item in iter(obj.stdout.readline, 'b'):
-        #     if item:
-        #         encode_type = chardet.detect(item)
-        #         if encode_type['encoding'] == 'utf-8':
-        #             print(item.decode('utf-8'))
-        #         elif encode_type['encoding'] == 'Windows-1252':
-        #             print(item.decode('Windows-1252'))
-        #         else:
-        #             print(item.decode('gbk'))
         if 'OK...转换完成' in obj.stdout.read().decode('gbk'):
             finsh_flag = True
-            print("kfb2svs成功")
         if finsh_flag:
-            self.tran(save_path)
+            self.tran(save_path,show_message=0)
 

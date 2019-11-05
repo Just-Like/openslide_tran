@@ -37,5 +37,7 @@ class UI(tkinter.Frame):
         self.convert.tran(path)
         self.select_button['text'] = '选择玻片'
         self.root.title(Config.main_win_title)
+        png_path = os.getcwd() + '\\pngs'
+        os.startfile(png_path)
 
 
