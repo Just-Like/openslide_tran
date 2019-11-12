@@ -16,6 +16,7 @@ os.environ['path'] = os.environ['path'] + ';' + openslide_bin_path
 
 import subprocess
 import openslide
+import configparser
 from Utiliy.Utiliy import Utiliy
 
 
@@ -32,12 +33,15 @@ class Convert:
         if file_ext != 'kfb':
             png_path = self.tran_standard_slide(path, file_name, file_ext)
         else:
-            self.tran_kfb_slide(path, file_name)
+            temp_svs_path = self.tran_kfb_slide(path, file_name)
+            png_path = self.tran_standard_slide(temp_svs_path, file_name, file_ext)
         return png_path
 
     def tran_standard_slide(self, path, file_name, file_ext):
         file_name = Utiliy.gefName(file_name, file_ext)
         file_name = prefix_path + '\\pngs\\' + file_name
+        if not os.path.isdir(prefix_path + '\\pngs\\'):
+            os.mkdir(prefix_path + '\\pngs\\')
         try:
             try:
                 slide = openslide.open_slide(path)
@@ -63,7 +67,8 @@ class Convert:
     def tran_kfb_slide(self, path, file_name):
         finsh_flag = False
         save_path = prefix_path + '\\kfb_temp\\' + file_name+'.svs'
-        print(save_path)
+        if not os.path.exists(prefix_path + '\\kfb_temp\\'):
+            os.mkdir(prefix_path + '\\kfb_temp\\')
         kfb2tif_exe_path = prefix_path + r'\ext_package\kfb2tif\KFbioConverter.exe'
         kfb2tif_exe_exists = os.path.exists(kfb2tif_exe_path)
         if not kfb2tif_exe_exists:
@@ -74,5 +79,5 @@ class Convert:
         if 'OK...转换完成' in obj.stdout.read().decode('gbk'):
             finsh_flag = True
         if finsh_flag:
-            self.tran(save_path,show_message=0)
+            return save_path
 
