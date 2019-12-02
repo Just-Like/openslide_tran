@@ -8,6 +8,7 @@ import tkinter
 import time
 import requests
 import os
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from threading import Thread
 from tkinter import messagebox
 from config import Config
@@ -47,6 +48,24 @@ class Utiliy:
             Utiliy.messageError("提示", "配置文件不存在")
         else:
             return Singleton_config().config
+
+    @staticmethod
+    def upload_by_chunk(filepath, token, *args):
+        def callback(monitor):
+            print(monitor.bytes_read)
+
+        m = MultipartEncoder(fields={"file": ("img.png", open(filepath, "rb"))},
+                             boundary='---------------------------7de1ae242c06ca'
+                             )
+        data = MultipartEncoderMonitor(m, callback)
+        headers = {
+            'Content-Type': m.content_type,
+            "token": "baaa2f93-61f1-4e45-82ba-58e732a67c06"
+        }
+        config = Utiliy.get_config_object()
+        upload_url = config.get('upload', 'url')
+        res = requests.post(upload_url, data=data, headers=headers)
+
 
     class ThreadUpload(Thread):
         def __init__(self, png_path):
