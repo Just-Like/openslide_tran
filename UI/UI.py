@@ -16,6 +16,7 @@ from tkinter import NW,CENTER
 from Service import Convert
 from config import Config
 from Utiliy.Utiliy import Utiliy
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 import tkinter
 import threading
 import requests
@@ -46,13 +47,23 @@ class UI(tkinter.Frame):
         else:
             Utiliy.messageError("提示", "该文件不存在请重新上传")
 
+    def callback(self, monitor):
+        print(monitor.bytes_read)
+
     def tran_ui(self, path):
         png_path = self.convert.tran(path)
         self.select_button['text'] = '选择玻片'
         self.root.title(Config.main_win_title)
         self.select_button.pack_forget()
         self.tran_finsh_lable.pack()
-        upload_response = Utiliy.upload_by_chunk(png_path)
+        config = Utiliy.get_config_object()
+        upload_url = config.get('upload', 'url')
+        fields = {
+            "id": "shfahskjdfhkashdkf",
+            "file": ("img.png", open(png_path, "rb")),
+        }
+        multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
+        upload_response = Utiliy.upload_by_chunk(multipart_data, upload_url, self.callback)
         if upload_response.json():
             if upload_response.json()['msg'] == 'success':
                 Utiliy.messageInfo("提示", "文件已上传至服务器！！")

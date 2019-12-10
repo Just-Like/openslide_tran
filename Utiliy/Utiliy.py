@@ -50,7 +50,7 @@ class Utiliy:
             return Singleton_config().config
 
     @staticmethod
-    def upload_by_chunk(filepath, *args):
+    def upload_by_chunk_bak(filepath, *args):
         def callback(monitor):
             print(monitor.bytes_read)
 
@@ -63,6 +63,15 @@ class Utiliy:
         }
         config = Utiliy.get_config_object()
         upload_url = config.get('upload', 'url')
+        res = requests.post(upload_url, data=data, headers=headers)
+        return res
+
+    @staticmethod
+    def upload_by_chunk(multipart_data, upload_url, callback, **kwargs):
+        data = MultipartEncoderMonitor(multipart_data, callback)
+        headers = {
+            'Content-Type': multipart_data.content_type,
+        }
         res = requests.post(upload_url, data=data, headers=headers)
         return res
 
