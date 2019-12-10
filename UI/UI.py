@@ -3,24 +3,20 @@
 # @Author  : Just
 # @Email   : 1785780475@qq.com
 # @File    : ui.py
-from gevent import monkey
-monkey.patch_socket()
-import gevent
 from tkinter import filedialog
 from tkinter import Button
 from tkinter import Label
 from tkinter import Canvas
-from multiprocessing import Process
+from tkinter import Entry
 from tkinter import StringVar
-from tkinter import NW,CENTER
+from tkinter import NW, CENTER,W
 from Service import Convert
 from config import Config
 from Utiliy.Utiliy import Utiliy
-from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from functools import partial
+from requests_toolbelt import MultipartEncoder
 import tkinter
 import threading
-import requests
-import time
 import os
 
 
@@ -28,15 +24,27 @@ class UI(tkinter.Frame):
     def __init__(self, root):
         tkinter.Frame.__init__(self, root)
 
+        frame2 = tkinter.Frame()
         self.root = root
         self.convert = Convert.Convert()
         self.select_button = Button(self, text='选择玻片', width=100, height=50, command=self.askopenfilename)
-        self.tran_finsh_lable = Label(self, text='玻片格式转换完成，准备上传至服务器！', width=100, height=50)
-        self.canvas_progress_bar = Canvas(width=100, height=20)
+        self.tran_finsh_lable = Label(self, text='玻片格式转换完成，正在上传服务器！', width=120, height=50)
+        self.input = Entry(frame2)
+        self.input_lable = Label(frame2, text="病理号: ", width=5, height=5,padx=20)
+        self.canvas_progress_bar = Canvas(width=100, height=30)
         self.canvas_progress_bar.place(relx=0.45, rely=0.4, anchor=CENTER)
+        self.x = StringVar()
+        self.lable = Label(self, textvariable=self.x)
+        self.input.pack(side="right")
+        self.input_lable.pack(side="left")
         self.select_button.pack()
+        frame2.pack()
 
     def askopenfilename(self):
+        input_value = self.input.get()
+        if not input_value:
+            Utiliy.messageError("错误", "请先填写病理号！！")
+            return
         ext = list(map(lambda ext: (ext.replace("*.", ''), ext), Config.support_ext))
         path = filedialog.askopenfilename(title='玻片文件', filetypes=ext)
         if os.path.exists(path):
@@ -47,27 +55,37 @@ class UI(tkinter.Frame):
         else:
             Utiliy.messageError("提示", "该文件不存在请重新上传")
 
-    def callback(self, monitor):
-        print(monitor.bytes_read)
+    def callback(self, monitor, png_size):
+        fill_rec = self.canvas_progress_bar.create_rectangle(5, 5, 5, 25, outline="", width=0, fill="blue")
+        progress_num = (monitor.bytes_read / png_size) * 100
+        progress_str = str(round(progress_num, 2)) + "%"
+        print(progress_str)
+        self.root.update()
+        self.x.set(progress_str)
+        self.canvas_progress_bar.coords(fill_rec, (5, 5, 6 + progress_num, 25))
 
     def tran_ui(self, path):
-        png_path = self.convert.tran(path)
         self.select_button['text'] = '选择玻片'
         self.root.title(Config.main_win_title)
         self.select_button.pack_forget()
         self.tran_finsh_lable.pack()
+        input_value = self.input.get()
+        png_path = self.convert.tran(path)
+        png_size = os.path.getsize(png_path)
         config = Utiliy.get_config_object()
         upload_url = config.get('upload', 'url')
         fields = {
-            "id": "shfahskjdfhkashdkf",
+            "id": input_value,
             "file": ("img.png", open(png_path, "rb")),
         }
         multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
-        upload_response = Utiliy.upload_by_chunk(multipart_data, upload_url, self.callback)
+        upload_response = Utiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
         if upload_response.json():
             if upload_response.json()['msg'] == 'success':
                 Utiliy.messageInfo("提示", "文件已上传至服务器！！")
                 self.tran_finsh_lable.pack_forget()
                 self.select_button.pack()
+                self.input.delete(0, "end")
+
 
 

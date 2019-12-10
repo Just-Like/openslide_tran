@@ -6,8 +6,21 @@
 
 
 class Config:
-    main_win_width = 250
-    main_win_height = 250
+    main_win_width = 500
+    main_win_height = 500
     main_win_title = "玻片转换器"
-    support_ext = ['*.*','*.svs', '*.tif','*.tiff', '*.scn', '*.mrxs', '*.ndpi', '*.kfb', '*.svslide', '*.vms', '*.vmu','*.bif',
-                   '*.zif']
+    support_ext = [
+       '*.*',
+       '*.svs',
+       '*.tif',
+       '*.tiff',
+       '*.scn',
+       '*.mrxs',
+       '*.ndpi',
+       '*.kfb',
+       '*.svslide',
+       '*.vms',
+       '*.vmu',
+       '*.bif',
+       '*.zif'
+    ]
