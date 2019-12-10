@@ -31,7 +31,7 @@ class UI(tkinter.Frame):
         self.tran_finsh_lable = Label(self, text='玻片格式转换完成，正在上传服务器！', width=120, height=50)
         self.input = Entry(frame2)
         self.input_lable = Label(frame2, text="病理号: ", width=5, height=5,padx=20)
-        self.canvas_progress_bar = Canvas(width=100, height=30)
+        self.canvas_progress_bar = Canvas(width=120, height=30)
         self.canvas_progress_bar.place(relx=0.45, rely=0.4, anchor=CENTER)
         self.x = StringVar()
         self.lable = Label(self, textvariable=self.x)
@@ -56,6 +56,7 @@ class UI(tkinter.Frame):
             Utiliy.messageError("提示", "该文件不存在请重新上传")
 
     def callback(self, monitor, png_size):
+        out_rec = self.canvas_progress_bar.create_rectangle(5, 5, 105, 25, outline="blue", width=1)
         fill_rec = self.canvas_progress_bar.create_rectangle(5, 5, 5, 25, outline="", width=0, fill="blue")
         progress_num = (monitor.bytes_read / png_size) * 100
         progress_str = str(round(progress_num, 2)) + "%"
@@ -68,9 +69,11 @@ class UI(tkinter.Frame):
         self.select_button['text'] = '选择玻片'
         self.root.title(Config.main_win_title)
         self.select_button.pack_forget()
+        self.tran_finsh_lable['text'] = "玻片正在转换中请耐心等待............"
         self.tran_finsh_lable.pack()
         input_value = self.input.get()
         png_path = self.convert.tran(path)
+        self.tran_finsh_lable['text'] = "玻片格式转换完成，正在上传服务器！"
         png_size = os.path.getsize(png_path)
         config = Utiliy.get_config_object()
         upload_url = config.get('upload', 'url')
