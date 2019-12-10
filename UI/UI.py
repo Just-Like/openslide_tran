@@ -3,6 +3,9 @@
 # @Author  : Just
 # @Email   : 1785780475@qq.com
 # @File    : ui.py
+from gevent import monkey
+monkey.patch_socket()
+import gevent
 from tkinter import filedialog
 from tkinter import Button
 from tkinter import Label
@@ -49,10 +52,10 @@ class UI(tkinter.Frame):
         self.root.title(Config.main_win_title)
         self.select_button.pack_forget()
         self.tran_finsh_lable.pack()
-        upload_response = Utiliy.upload(png_path)
+        upload_response = Utiliy.upload_by_chunk(png_path)
         if upload_response.json():
             if upload_response.json()['msg'] == 'success':
-                Utiliy.messageInfo("提示","文件已上传至服务器！！")
+                Utiliy.messageInfo("提示", "文件已上传至服务器！！")
                 self.tran_finsh_lable.pack_forget()
                 self.select_button.pack()
 

@@ -50,7 +50,7 @@ class Utiliy:
             return Singleton_config().config
 
     @staticmethod
-    def upload_by_chunk(filepath, token, *args):
+    def upload_by_chunk(filepath, *args):
         def callback(monitor):
             print(monitor.bytes_read)
 
@@ -60,12 +60,11 @@ class Utiliy:
         data = MultipartEncoderMonitor(m, callback)
         headers = {
             'Content-Type': m.content_type,
-            "token": "baaa2f93-61f1-4e45-82ba-58e732a67c06"
         }
         config = Utiliy.get_config_object()
         upload_url = config.get('upload', 'url')
         res = requests.post(upload_url, data=data, headers=headers)
-
+        return res
 
     class ThreadUpload(Thread):
         def __init__(self, png_path):
