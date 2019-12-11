@@ -72,23 +72,10 @@ class Utiliy:
         headers = {
             'Content-Type': multipart_data.content_type,
         }
-        res = requests.post(upload_url, data=data, headers=headers)
+        res = requests.post(upload_url, data=data, headers=headers, verify=False)
         return res
 
-    class ThreadUpload(Thread):
-        def __init__(self, png_path):
-            Thread.__init__(self)
-            self.png_path = png_path
-            self.result = ''
 
-        def run(self):
-            try:
-                self.result = Utiliy.upload(self.png_path)
-            except Exception as e:
-                return {'msg': 'fail'}
-
-        def get_result(self):
-            return self.result
 
 
 

@@ -78,17 +78,21 @@ class UI(tkinter.Frame):
         config = Utiliy.get_config_object()
         upload_url = config.get('upload', 'url')
         fields = {
-            "id": input_value,
+            "blcheckno": input_value,
             "file": ("img.png", open(png_path, "rb")),
         }
         multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
         upload_response = Utiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
-        if upload_response.json():
-            if upload_response.json()['msg'] == 'success':
+        upload_result = upload_response.json()
+        print(upload_result)
+        if upload_result:
+            if upload_result['code'] == '0':
                 Utiliy.messageInfo("提示", "文件已上传至服务器！！")
-                self.tran_finsh_lable.pack_forget()
-                self.select_button.pack()
-                self.input.delete(0, "end")
+            elif upload_result['code'] < 0:
+                Utiliy.messageError("错误", upload_result["msg"])
+            self.tran_finsh_lable.pack_forget()
+            self.select_button.pack()
+            self.input.delete(0, "end")
 
 
 
