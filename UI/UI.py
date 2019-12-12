@@ -18,6 +18,7 @@ from requests_toolbelt import MultipartEncoder
 import tkinter
 import threading
 import os
+import filetype
 
 
 class UI(tkinter.Frame):
@@ -72,7 +73,12 @@ class UI(tkinter.Frame):
         self.tran_finsh_lable['text'] = "玻片正在转换中请耐心等待............"
         self.tran_finsh_lable.pack()
         input_value = self.input.get()
-        png_path = self.convert.tran(path)
+        kind = filetype.guess(path)
+        file_mime = kind.mime
+        if file_mime != "image/png":
+            png_path = self.convert.tran(path)
+        else:
+            png_path = path
         self.tran_finsh_lable['text'] = "玻片格式转换完成，正在上传服务器！"
         png_size = os.path.getsize(png_path)
         config = Utiliy.get_config_object()
