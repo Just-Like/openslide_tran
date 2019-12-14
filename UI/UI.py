@@ -39,6 +39,8 @@ class UI(tkinter.Frame):
         self.input.pack(side="right")
         self.input_lable.pack(side="left")
         self.select_button.pack()
+        self.out_rec = None
+        self.fill_rec = None
         frame2.pack()
 
     def askopenfilename(self):
@@ -65,6 +67,11 @@ class UI(tkinter.Frame):
         self.root.update()
         self.x.set(progress_str)
         self.canvas_progress_bar.coords(fill_rec, (5, 5, 6 + progress_num, 25))
+        if self.out_rec is not None:
+            self.canvas_progress_bar.delete(self.out_rec)
+            self.canvas_progress_bar.delete(self.fill_rec)
+        self.out_rec = out_rec
+        self.fill_rec = fill_rec
 
     def tran_ui(self, path):
         self.select_button['text'] = '选择玻片'
@@ -92,7 +99,7 @@ class UI(tkinter.Frame):
         upload_result = upload_response.json()
         print(upload_result)
         if upload_result:
-            if upload_result['code'] == '0':
+            if upload_result['code'] == 0:
                 Utiliy.messageInfo("提示", "文件已上传至服务器！！")
             elif upload_result['code'] < 0:
                 Utiliy.messageError("错误", upload_result["msg"])
