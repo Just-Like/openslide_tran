@@ -21,13 +21,17 @@ import os
 import filetype
 
 
+class UiUtiliy(Utiliy):
+    pass
+
+
 class UI(tkinter.Frame):
     def __init__(self, root):
         tkinter.Frame.__init__(self, root)
 
         frame2 = tkinter.Frame()
         self.root = root
-        self.convert = Convert.Convert()
+        self.convert = Convert.Convert(UiUtiliy)
         self.select_button = Button(self, text='选择玻片', width=100, height=50, command=self.askopenfilename)
         self.tran_finsh_lable = Label(self, text='玻片格式转换完成，正在上传服务器！', width=120, height=50)
         self.input = Entry(frame2)
@@ -46,7 +50,7 @@ class UI(tkinter.Frame):
     def askopenfilename(self):
         input_value = self.input.get()
         if not input_value:
-            Utiliy.messageError("错误", "请先填写病理号！！")
+            UiUtiliy.messageError("错误", "请先填写病理号！！")
             return
         ext = list(map(lambda ext: (ext.replace("*.", ''), ext), Config.support_ext))
         path = filedialog.askopenfilename(title='玻片文件', filetypes=ext)
@@ -56,7 +60,7 @@ class UI(tkinter.Frame):
             tran_thr = threading.Thread(target=self.tran_ui, args=(path,))
             tran_thr.start()
         else:
-            Utiliy.messageError("提示", "该文件不存在请重新上传")
+            UiUtiliy.messageError("提示", "该文件不存在请重新上传")
 
     def callback(self, monitor, png_size):
         out_rec = self.canvas_progress_bar.create_rectangle(5, 5, 105, 25, outline="blue", width=1)
@@ -88,21 +92,21 @@ class UI(tkinter.Frame):
             png_path = path
         self.tran_finsh_lable['text'] = "玻片格式转换完成，正在上传服务器！"
         png_size = os.path.getsize(png_path)
-        config = Utiliy.get_config_object()
+        config = UiUtiliy.get_config_object()
         upload_url = config.get('upload', 'url')
         fields = {
             "blcheckno": input_value,
             "file": ("img.png", open(png_path, "rb")),
         }
         multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
-        upload_response = Utiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
+        upload_response = UiUtiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
         upload_result = upload_response.json()
         print(upload_result)
         if upload_result:
             if upload_result['code'] == 0:
-                Utiliy.messageInfo("提示", "文件已上传至服务器！！")
+                UiUtiliy.messageInfo("提示", "文件已上传至服务器！！")
             elif upload_result['code'] < 0:
-                Utiliy.messageError("错误", upload_result["msg"])
+                UiUtiliy.messageError("错误", upload_result["msg"])
             self.tran_finsh_lable.pack_forget()
             self.select_button.pack()
             self.input.delete(0, "end")

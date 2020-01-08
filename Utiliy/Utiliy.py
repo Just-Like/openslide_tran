@@ -9,48 +9,47 @@ import time
 import requests
 import os
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
-from threading import Thread
 from tkinter import messagebox
 from config import Config
 from Utiliy.config import Config as Singleton_config
 
 
 class Utiliy:
-    @staticmethod
-    def messageInfo(title, content):
+    @classmethod
+    def messageInfo(cls, title, content):
         messagebox.showinfo(title, content)
 
-    @staticmethod
-    def messageError(title, content):
+    @classmethod
+    def messageError(cls, title, content):
         messagebox.showerror(title, content)
 
-    @staticmethod
-    def getMsize(root:tkinter):
+    @classmethod
+    def getMsize(cls, root:tkinter):
         screenwidth = root.winfo_screenwidth()
         screenheight = root.winfo_screenheight()
         return Config.main_win_width, Config.main_win_height, (screenwidth - Config.main_win_width) / 2, (screenheight - Config.main_win_height) / 2
 
-    @staticmethod
-    def gefName(file_name, file_ext):
+    @classmethod
+    def gefName(cls, file_name, file_ext):
         return file_ext+'-'+time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
 
-    @staticmethod
-    def upload(file_path):
-        config = Utiliy.get_config_object()
+    @classmethod
+    def upload(cls, file_path):
+        config = cls.get_config_object()
         upload_url = config.get('upload', 'url')
         response = requests.post(url=upload_url, files={'file': open(file_path, 'rb')})
         return response
 
-    @staticmethod
-    def get_config_object():
+    @classmethod
+    def get_config_object(cls):
         config_path = os.getcwd()+'/config/config.ini'
         if not os.path.exists(config_path):
-            Utiliy.messageError("提示", "配置文件不存在")
+            cls.messageError("提示", "配置文件不存在")
         else:
             return Singleton_config().config
 
-    @staticmethod
-    def upload_by_chunk_bak(filepath, *args):
+    @classmethod
+    def upload_by_chunk_bak(cls, filepath, *args):
         def callback(monitor):
             print(monitor.bytes_read)
 
@@ -61,13 +60,13 @@ class Utiliy:
         headers = {
             'Content-Type': m.content_type,
         }
-        config = Utiliy.get_config_object()
+        config = cls.get_config_object()
         upload_url = config.get('upload', 'url')
         res = requests.post(upload_url, data=data, headers=headers)
         return res
 
-    @staticmethod
-    def upload_by_chunk(multipart_data, upload_url, callback, **kwargs):
+    @classmethod
+    def upload_by_chunk(cls,multipart_data, upload_url, callback, **kwargs):
         data = MultipartEncoderMonitor(multipart_data, callback)
         headers = {
             'Content-Type': multipart_data.content_type,

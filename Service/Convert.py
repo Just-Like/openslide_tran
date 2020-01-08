@@ -16,17 +16,15 @@ os.environ['path'] = os.environ['path'] + ';' + openslide_bin_path
 
 import subprocess
 import openslide
-import configparser
-from Utiliy.Utiliy import Utiliy
 
 
 class Convert:
-    def __init__(self):
-        pass
+    def __init__(self, utiliy):
+        self.utiliy = utiliy
 
     def tran(self, path, show_message=1):
         if show_message:
-            Utiliy.messageInfo("提示", "开始转换！！")
+            self.utiliy.messageInfo("提示", "开始转换！！")
         _, file_name = os.path.split(path)
         file_name, file_ext = file_name.split('.')
 
@@ -38,7 +36,7 @@ class Convert:
         return png_path
 
     def tran_standard_slide(self, path, file_name, file_ext):
-        file_name = Utiliy.gefName(file_name, file_ext)
+        file_name = self.utiliy.gefName(file_name, file_ext)
         file_name = prefix_path + '\\pngs\\' + file_name
         if not os.path.isdir(prefix_path + '\\pngs\\'):
             os.mkdir(prefix_path + '\\pngs\\')
@@ -53,14 +51,14 @@ class Convert:
                 img = slide.get_thumbnail((15000, 15000))
             img.save(file_name + '.png')
             print("转换成功！！！！！")
-            Utiliy.messageInfo("提示", "转换成功！！")
+            self.utiliy.messageInfo("提示", "转换成功！！")
             return file_name + '.png'
         except MemoryError:
             print("文件太大内存不足！！！！！")
-            Utiliy.messageError("提示", "文件太大内存不足！！")
+            self.utiliy.messageError("提示", "文件太大内存不足！！")
         except OSError as e:
             print("出现未知错误！！！！！")
-            Utiliy.messageError("提示", "出现未知错误！！")
+            self.utiliy.messageError("提示", "出现未知错误！！")
         finally:
             pass
 
@@ -72,7 +70,7 @@ class Convert:
         kfb2tif_exe_path = prefix_path + r'\ext_package\kfb2tif\KFbioConverter.exe'
         kfb2tif_exe_exists = os.path.exists(kfb2tif_exe_path)
         if not kfb2tif_exe_exists:
-            Utiliy.messageError("提示", "KFbioConverter.exe工具不存在！！")
+            self.utiliy.messageError("提示", "KFbioConverter.exe工具不存在！！")
         comm_str = '{} {} {} 2'.format(kfb2tif_exe_path, path, save_path)
         obj = subprocess.Popen(comm_str, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
