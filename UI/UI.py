@@ -9,7 +9,7 @@ from tkinter import Label
 from tkinter import Canvas
 from tkinter import Entry
 from tkinter import StringVar
-from tkinter import NW, CENTER,W
+from tkinter import CENTER
 from Service import Convert
 from config import Config
 from Utiliy.Utiliy import Utiliy
@@ -19,6 +19,7 @@ import tkinter
 import threading
 import os
 import filetype
+import requests
 
 
 class UiUtiliy(Utiliy):
@@ -29,27 +30,36 @@ class UI(tkinter.Frame):
     def __init__(self, root):
         tkinter.Frame.__init__(self, root)
 
-        frame2 = tkinter.Frame()
+        frame_main = tkinter.Frame()
+        frame_input = tkinter.Frame(frame_main)
+        frame_upload_radiobutton = tkinter.Frame(frame_main)
         self.root = root
+        self.x = StringVar()
+        self.radiobuttonvar = tkinter.IntVar(value=-1)
         self.convert = Convert.Convert(UiUtiliy)
         self.select_button = Button(self, text='选择玻片', width=100, height=50, command=self.askopenfilename)
         self.tran_finsh_lable = Label(self, text='玻片格式转换完成，正在上传服务器！', width=120, height=50)
-        self.input = Entry(frame2)
-        self.input_lable = Label(frame2, text="病理号: ", width=5, height=5,padx=20)
+        self.input = Entry(frame_input)
+        self.input_lable = Label(frame_input, text="病理号: ", width=5, height=5,padx=20)
         self.canvas_progress_bar = Canvas(width=120, height=30)
         self.canvas_progress_bar.place(relx=0.45, rely=0.4, anchor=CENTER)
-        self.x = StringVar()
+        self.radiobutton_upload = tkinter.Radiobutton(frame_upload_radiobutton, text='上传服务器', variable=self.radiobuttonvar, value=1)
+        self.radiobutton_not_upload = tkinter.Radiobutton(frame_upload_radiobutton, text='不上传服务器', variable=self.radiobuttonvar, value=-1)
         self.lable = Label(self, textvariable=self.x)
         self.input.pack(side="right")
         self.input_lable.pack(side="left")
         self.select_button.pack()
+        self.radiobutton_upload.pack(side=tkinter.RIGHT)
+        self.radiobutton_not_upload.pack(side=tkinter.RIGHT)
         self.out_rec = None
         self.fill_rec = None
-        frame2.pack()
+        frame_main.pack()
+        frame_input.pack()
+        frame_upload_radiobutton.pack()
 
     def askopenfilename(self):
         input_value = self.input.get()
-        if not input_value:
+        if self.radiobuttonvar.get() == 1 and not input_value:
             UiUtiliy.messageError("错误", "请先填写病理号！！")
             return
         ext = list(map(lambda ext: (ext.replace("*.", ''), ext), Config.support_ext))
@@ -90,26 +100,30 @@ class UI(tkinter.Frame):
             png_path = self.convert.tran(path)
         else:
             png_path = path
-        self.tran_finsh_lable['text'] = "玻片格式转换完成，正在上传服务器！"
-        png_size = os.path.getsize(png_path)
-        config = UiUtiliy.get_config_object()
-        upload_url = config.get('upload', 'url')
-        fields = {
-            "blcheckno": input_value,
-            "file": ("img.png", open(png_path, "rb")),
-        }
-        multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
-        upload_response = UiUtiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
-        upload_result = upload_response.json()
-        print(upload_result)
-        if upload_result:
-            if upload_result['code'] == 0:
-                UiUtiliy.messageInfo("提示", "文件已上传至服务器！！")
-            elif upload_result['code'] < 0:
-                UiUtiliy.messageError("错误", upload_result["msg"])
-            self.tran_finsh_lable.pack_forget()
-            self.select_button.pack()
-            self.input.delete(0, "end")
+        if self.radiobuttonvar.get() == 1:
+            self.tran_finsh_lable['text'] = "玻片格式转换完成，正在上传服务器！"
+            png_size = os.path.getsize(png_path)
+            config = UiUtiliy.get_config_object()
+            upload_url = config.get('upload', 'url')
+            fields = {
+                "blcheckno": input_value,
+                "file": ("img.png", open(png_path, "rb")),
+            }
+            multipart_data = MultipartEncoder(fields=fields, boundary='---------------------------7de1ae242c06ca')
+            try:
+                upload_response = UiUtiliy.upload_by_chunk(multipart_data, upload_url, partial(self.callback, png_size=png_size))
+                upload_result = upload_response.json()
+                print(upload_result)
+                if upload_result:
+                    if upload_result['code'] == 0:
+                        UiUtiliy.messageInfo("提示", "文件已上传至服务器！！")
+                    elif upload_result['code'] < 0:
+                        UiUtiliy.messageError("错误", upload_result["msg"])
+            except requests.exceptions.ConnectionError:
+                UiUtiliy.messageError("错误", "上传服务器失败 请检查网络是否正常")
+        self.tran_finsh_lable.pack_forget()
+        self.select_button.pack()
+        self.input.delete(0, "end")
 
 
 
